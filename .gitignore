@@ -1,0 +1,12 @@
+*
+!*.c++
+!*.cpp
+!*.cxx
+!*.cc
+!*.h++
+!*.hpp
+!*.hxx
+!*.hh
+!*.h
+!CMakeLists.txt
+!.gitignore
