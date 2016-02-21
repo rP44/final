@@ -2,20 +2,24 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <string>
+#include <chrono>
+#include <thread>
+#include <fstream>
 #include "foo.h"
 
 int main( int argc, char** argv )
 {
-	int ch = 0;
+  int ch = 0;
   std::string host;
   std::string port;
   std::string directory;
-  const char* const PROGRAMM_NAME = argv[ 0 ];
-  const char* const USAGE_FORMAT  = "Usage: %s -h <ip> -p <port> -d <directory>\n";
+  const char* const PROGRAM_NAME = argv[ 0 ];
+  const char* const USAGE_FORMAT = "Usage: %s -h <ip> -p <port> -d <directory>\n";
+  const size_t MIN_PROGRAM_ARGUMENTS = 7;
 
-  if ( argc < 7 )
+  if ( argc < MIN_PROGRAM_ARGUMENTS )
   {
-    std::fprintf( stderr, USAGE_FORMAT, PROGRAMM_NAME );
+    std::fprintf(stderr, USAGE_FORMAT, PROGRAM_NAME);
     std::exit( EXIT_FAILURE );
   }
 
@@ -36,7 +40,7 @@ int main( int argc, char** argv )
       break;
 
     default:
-      std::fprintf( stderr, USAGE_FORMAT, PROGRAMM_NAME );
+      std::fprintf(stderr, USAGE_FORMAT, PROGRAM_NAME);
       std::exit( EXIT_FAILURE );
     }
   }
@@ -53,7 +57,32 @@ int main( int argc, char** argv )
   if ( !directory.empty() )
     std::cout << "directory: " << directory << std::endl;
 
+  int pid = fork();
+
+  switch ( pid )
+  {
+  case 0:
+    setsid();
+    //chdir("/");
+
+    close(0);
+    close(1);
+    close(2);
+    break;
+
+  case -1:
+    std::printf("Error: unable to fork\n");
+    break;
+
+  default:
+    std::printf( "Success: process %d went to background\n", pid );
+    exit( EXIT_SUCCESS );
+  }
+
+  std::this_thread::sleep_for( std::chrono::minutes( 1 ) );
+  std::ofstream out( "out" );
+  out << "Hello, world from daemon!" << std::endl;
+
 	return EXIT_SUCCESS;
 }
-
 
