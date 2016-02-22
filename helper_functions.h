@@ -5,13 +5,25 @@
 #include <string>
 #include <fstream>
 #include <stddef.h>
+#include <tuple>
 
-int set_nonblock( int fd );
+enum { HOST, PORT, DIRECTORY };
 
-void print_error_message_and_exit( const char* msg );
+extern const char* const SUCCESS_RESPONSE_FORMAT;
+extern const char* const FAILURE_RESPONSE_FORMAT;
+
+void log_and_exit( std::ostream& log, const char *msg );
 
 std::string get_path( const char* buff, ptrdiff_t size );
 
-std::string get_file_text( std::ifstream& in );
+std::string get_file_text( std::istream& in );
+
+void processing_request( int slave, const std::string& directory,
+  std::ostream& daemon_log );
+
+std::tuple< std::string, std::string, std::string >
+  check_program_arguments( int& argc, char**& argv );
+
+void daemonization();
 
 #endif
