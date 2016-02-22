@@ -14,7 +14,8 @@ extern const char* const FAILURE_RESPONSE_FORMAT;
 
 void log_and_exit( std::ostream& log, const char *msg );
 
-std::string get_path( const char* buff, ptrdiff_t size );
+std::string get_path( const char* buff, ptrdiff_t size,
+  const std::string& directory );
 
 std::string get_file_text( std::istream& in );
 

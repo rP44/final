@@ -6,10 +6,13 @@
 #include <unistd.h>
 #include <mutex>
 #include <iostream>
+#include <sys/stat.h>
 #include "helper_functions.h"
 
 const char* const SUCCESS_RESPONSE_FORMAT =
   "HTTP/1.0 200 OK\r\n"
+  "Content-length: %zu\r\n"
+  "Connection: close\r\n"
   "Content-Type: text/html\r\n"
   "\r\n"
   "%s";
@@ -28,7 +31,8 @@ void log_and_exit( std::ostream& log, const char* msg )
   exit( EXIT_FAILURE );
 }
 
-std::string get_path( const char* buff, ptrdiff_t size )
+std::string get_path( const char* buff, ptrdiff_t size,
+  const std::string& directory )
 {
   if ( buff[ SLASH_POS ] != '/' )
     return { "/" };
@@ -37,8 +41,11 @@ std::string get_path( const char* buff, ptrdiff_t size )
   size_t end = tmp.find_first_of( " ?", SLASH_POS );
   std::string result( tmp.substr( SLASH_POS, end - SLASH_POS ) );
 
-  if ( result[ result.size() - 1 ] == '/' )
-    result += "index.html";
+  struct stat sb;
+  std::string absolute_path = directory + result;
+
+  if ( stat( absolute_path.c_str(), &sb ) == 0 && S_ISDIR( sb.st_mode ) )
+    result += "/index.html";
 
   return result;
 }
@@ -67,7 +74,7 @@ void processing_request( int slave, const std::string& directory,
   if ( ( recv_size = recv( slave, buff, BUF_SIZE - 1, MSG_NOSIGNAL ) ) == -1 )
     log_and_exit( daemon_log, "recv" );
 
-  path_to_file = get_path( buff, recv_size );
+  path_to_file = get_path( buff, recv_size, directory );
 
   if ( path_to_file == "/" )
     path_to_file += "index.html";
@@ -76,7 +83,8 @@ void processing_request( int slave, const std::string& directory,
   if ( in )
   {
     std::string text = get_file_text( in );
-    snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, text.c_str() );
+    snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, text.size(),
+      text.c_str() );
 
     if ( send( slave, buff, strlen( buff ), MSG_NOSIGNAL ) == -1 )
       log_and_exit( daemon_log, "send" );
