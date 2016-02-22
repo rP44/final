@@ -22,4 +22,22 @@ void print_error_message_and_exit( const char* msg )
   exit( EXIT_FAILURE );
 }
 
+std::string get_path( const char* buff, ptrdiff_t size )
+{
+  std::string tmp( buff, size );
+  size_t begin = tmp.find( '/' );
+  size_t end   = tmp.find_first_of( " ?", begin );
+  return tmp.substr( begin, end - begin );
+}
 
+std::string get_file_text( std::ifstream& in )
+{
+  std::string result;
+
+  char ch = 0;
+
+  while ( in.get( ch ) )
+    result += ch;
+
+  return result;
+}

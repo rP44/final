@@ -13,12 +13,22 @@
 #include <string.h>
 #include "helper_functions.h"
 
+static const char* const SUCCESS_RESPONSE_FORMAT =
+  "HTTP/1.0 200 OK\r\n"
+  "Content-Type: text/html\r\n"
+  "\r\n"
+  "%s";
+
+static const char* const FAILURE_RESPONSE_FORMAT =
+  "HTTP/1.0 404 NOT FOUND\r\nContent-Type: text/html\r\n\r\n";
+
 int main( int argc, char** argv )
 {
   int ch = 0;
   std::string host;
   std::string port;
   std::string directory;
+  std::string path_to_file;
   const char* const PROGRAM_NAME = argv[ 0 ];
   const char* const USAGE_FORMAT = "Usage: %s -h <ip> -p <port> -d <directory>\n";
   const size_t MIN_PROGRAM_ARGUMENTS = 7;
@@ -54,7 +64,7 @@ int main( int argc, char** argv )
   argc -= optind;
   argv += optind;
 
-  /*if ( !host.empty() )
+  if ( !host.empty() )
     std::cout << "host: " << host << std::endl;
 
   if ( !port.empty() )
@@ -83,7 +93,7 @@ int main( int argc, char** argv )
   default:
     std::printf( "Success: process %d went to background\n", pid );
     exit( EXIT_SUCCESS );
-  }*/
+  }
 
   int master = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
   if ( master == -1 )
@@ -93,8 +103,8 @@ int main( int argc, char** argv )
   memset( &addr, 0, sizeof( addr ) );
   addr.sin_family = AF_INET;
   addr.sin_port = htons( ( uint16_t )std::stoul( port ) );
-  addr.sin_addr.s_addr = htonl( INADDR_ANY );
-  //addr.sin_addr.s_addr = htonl( inet_addr( host.c_str() ) );
+  //addr.sin_addr.s_addr = htonl( INADDR_ANY );
+  addr.sin_addr.s_addr = htonl( inet_addr( host.c_str() ) );
 
   if ( bind( master, ( sockaddr* )&addr, sizeof( addr ) ) == -1 )
     print_error_message_and_exit( "bind" );
@@ -111,6 +121,8 @@ int main( int argc, char** argv )
 
   const size_t BUF_SIZE = 1024;
   char buff[ BUF_SIZE ];
+  ptrdiff_t recv_size = 0;
+  ptrdiff_t send_size = 0;
 
   int slave = 0;
 
@@ -123,8 +135,31 @@ int main( int argc, char** argv )
 
     memset( buff, 0, BUF_SIZE );
 
-    if ( recv( slave, buff, BUF_SIZE - 1, MSG_NOSIGNAL ) == -1 )
+    if ( ( recv_size = recv( slave, buff, BUF_SIZE - 1, MSG_NOSIGNAL ) ) == -1 )
       print_error_message_and_exit( "recv" );
+
+    path_to_file = get_path( buff, recv_size );
+    //std::cout << "path_to_file: " << path_to_file << std::endl;
+
+    std::ifstream in( directory + path_to_file );
+    if ( in )
+    {
+      //std::cout << "file exist\n" << std::endl;
+      //std::cout << get_file_text( in ) << std::endl;
+      //std::string text = get_file_text( in );
+      snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, get_file_text( in ).c_str() );
+
+      if ( ( send_size = send( slave, buff, strlen( buff ), MSG_NOSIGNAL ) ) == -1 )
+        print_error_message_and_exit( "send" );
+    }
+    else
+    {
+      //std::cout << "file not exist" << std::endl;
+      snprintf( buff, BUF_SIZE, FAILURE_RESPONSE_FORMAT );
+
+      if ( ( send_size = send( slave, buff, strlen( buff ), MSG_NOSIGNAL ) ) == -1 )
+        print_error_message_and_exit( "send" );
+    }
 
     shutdown( slave, SHUT_RDWR );
     close( slave );
@@ -132,6 +167,5 @@ int main( int argc, char** argv )
     printf( "%s\n", buff );
   }
 
-	return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
-
