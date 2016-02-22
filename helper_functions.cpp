@@ -21,6 +21,8 @@ const char* const FAILURE_RESPONSE_FORMAT =
 
 std::mutex daemon_log_mutex;
 
+static const size_t SLASH_POS = 4;
+
 void log_and_exit( std::ostream& log, const char* msg )
 {
   std::lock_guard< std::mutex > lock_guard( daemon_log_mutex );
@@ -30,10 +32,12 @@ void log_and_exit( std::ostream& log, const char* msg )
 
 std::string get_path( const char* buff, ptrdiff_t size )
 {
+  if ( buff[ SLASH_POS ] != '/' )
+    return { "/" };
+
   std::string tmp( buff, size );
-  size_t begin = tmp.find( '/' );
-  size_t end   = tmp.find_first_of( " ?", begin );
-  return tmp.substr( begin, end - begin );
+  size_t end   = tmp.find_first_of( " ?", SLASH_POS );
+  return tmp.substr( SLASH_POS, end - SLASH_POS );
 }
 
 std::string get_file_text( std::istream& in )
