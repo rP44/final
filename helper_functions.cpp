@@ -34,8 +34,13 @@ std::string get_path( const char* buff, ptrdiff_t size )
     return { "/" };
 
   std::string tmp( buff, size );
-  size_t end   = tmp.find_first_of( " ?", SLASH_POS );
-  return tmp.substr( SLASH_POS, end - SLASH_POS );
+  size_t end = tmp.find_first_of( " ?", SLASH_POS );
+  std::string result( tmp.substr( SLASH_POS, end - SLASH_POS ) );
+
+  if ( result[ result.size() - 1 ] == '/' )
+    result += "index.html";
+
+  return result;
 }
 
 std::string get_file_text( std::istream& in )
