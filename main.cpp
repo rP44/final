@@ -141,6 +141,9 @@ int main( int argc, char** argv )
     path_to_file = get_path( buff, recv_size );
     //std::cout << "path_to_file: " << path_to_file << std::endl;
 
+    if ( path_to_file == "/" )
+      path_to_file += "index.html";
+
     std::ifstream in( directory + path_to_file );
     if ( in )
     {
