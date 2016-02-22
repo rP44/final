@@ -10,6 +10,7 @@
 
 const char* const SUCCESS_RESPONSE_FORMAT =
   "HTTP/1.0 200 OK\r\n"
+  "Content-length: %zu\r\n"
   "Connection: close\r\n"
   "Content-Type: text/html\r\n"
   "\r\n"
@@ -72,7 +73,8 @@ void processing_request( int slave, const std::string& directory,
   if ( in )
   {
     std::string text = get_file_text( in );
-    snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, text.c_str() );
+    snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, text.size(),
+      text.c_str() );
 
     if ( send( slave, buff, strlen( buff ), MSG_NOSIGNAL ) == -1 )
       log_and_exit( daemon_log, "send" );
