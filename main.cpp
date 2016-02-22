@@ -15,6 +15,8 @@
 
 static const char* const SUCCESS_RESPONSE_FORMAT =
   "HTTP/1.0 200 OK\r\n"
+  "Content-length: %zu\r\n"
+  "Connection: close\r\n"
   "Content-Type: text/html\r\n"
   "\r\n"
   "%s";
@@ -149,8 +151,8 @@ int main( int argc, char** argv )
     {
       //std::cout << "file exist\n" << std::endl;
       //std::cout << get_file_text( in ) << std::endl;
-      //std::string text = get_file_text( in );
-      snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, get_file_text( in ).c_str() );
+      std::string text = get_file_text( in );
+      snprintf( buff, BUF_SIZE, SUCCESS_RESPONSE_FORMAT, text.size(), text.c_str() );
 
       if ( ( send_size = send( slave, buff, strlen( buff ), MSG_NOSIGNAL ) ) == -1 )
         print_error_message_and_exit( "send" );
