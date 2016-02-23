@@ -30,8 +30,8 @@ int main( int argc, char** argv )
   memset( &addr, 0, sizeof( addr ) );
   addr.sin_family = AF_INET;
   addr.sin_port = htons( ( uint16_t )std::stoul( port ) );
-  addr.sin_addr.s_addr = htonl( inet_addr( host.c_str() ) );
-  //addr.sin_addr.s_addr = htonl( INADDR_ANY );
+  //addr.sin_addr.s_addr = htonl( inet_addr( host.c_str() ) );
+  addr.sin_addr.s_addr = htonl( INADDR_ANY );
 
   if ( bind( master, ( sockaddr* )&addr, sizeof( addr ) ) == -1 )
     return 0; // hack
