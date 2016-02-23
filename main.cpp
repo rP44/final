@@ -16,7 +16,11 @@ int main( int argc, char** argv )
 
   daemonization();
 
-  std::ofstream daemon_log( "log.txt" );
+  std::ofstream daemon_log( "log.txt", std::ios::app );
+
+  log( daemon_log, "host: "      + host );
+  log( daemon_log, "port: "      + port );
+  log( daemon_log, "directory: " + directory );
 
   int master = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
   if ( master == -1 )

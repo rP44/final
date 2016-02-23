@@ -22,6 +22,18 @@ std::mutex daemon_log_mutex;
 
 static const size_t SLASH_POS = 4;
 
+void log( std::ostream& log, const char* msg )
+{
+  std::lock_guard< std::mutex > lock_guard( daemon_log_mutex );
+  log << msg << std::endl;
+}
+
+void log( std::ostream& log, const std::string& msg )
+{
+  std::lock_guard< std::mutex > lock_guard( daemon_log_mutex );
+  log << msg << std::endl;
+}
+
 void log_and_exit( std::ostream& log, const char* msg )
 {
   std::lock_guard< std::mutex > lock_guard( daemon_log_mutex );
@@ -43,7 +55,7 @@ std::string get_path( const char* buff, ptrdiff_t size,
   std::string absolute_path = directory + result;
 
   if ( stat( absolute_path.c_str(), &sb ) == 0 && S_ISDIR( sb.st_mode ) )
-    result += "/index.html";
+    result += "index.html";
 
   return result;
 }
@@ -76,6 +88,9 @@ void processing_request( int slave, const std::string& directory,
 
   if ( path_to_file == "/" )
     path_to_file += "index.html";
+
+  log( daemon_log, "path_to_file: " + path_to_file );
+  log( daemon_log, "absolute_file_name: " + directory + path_to_file );
 
   std::ifstream in( directory + path_to_file );
   if ( in )

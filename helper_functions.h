@@ -12,6 +12,10 @@ enum { HOST, PORT, DIRECTORY };
 extern const char* const SUCCESS_RESPONSE_FORMAT;
 extern const char* const FAILURE_RESPONSE_FORMAT;
 
+void log( std::ostream& log, const char* msg );
+
+void log( std::ostream& log, const std::string& msg );
+
 void log_and_exit( std::ostream& log, const char *msg );
 
 std::string get_path( const char* buff, ptrdiff_t size,
