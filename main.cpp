@@ -31,9 +31,11 @@ int main( int argc, char** argv )
   addr.sin_family = AF_INET;
   addr.sin_port = htons( ( uint16_t )std::stoul( port ) );
   addr.sin_addr.s_addr = htonl( inet_addr( host.c_str() ) );
+  //addr.sin_addr.s_addr = htonl( INADDR_ANY );
 
   if ( bind( master, ( sockaddr* )&addr, sizeof( addr ) ) == -1 )
-    log_and_exit( daemon_log, "bind");
+    return 0; // hack
+    //log_and_exit( daemon_log, "bind");
 
   int optval = 1;
   if ( setsockopt( master, SOL_SOCKET, SO_REUSEADDR, &optval,
@@ -41,7 +43,8 @@ int main( int argc, char** argv )
     log_and_exit( daemon_log, "setsockopt");
 
   if ( listen( master, SOMAXCONN ) == -1 )
-    log_and_exit( daemon_log, "listen");
+    return 0; // hack
+    //log_and_exit( daemon_log, "listen");
 
   int slave = 0;
 
